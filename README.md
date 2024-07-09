@@ -21,24 +21,6 @@ The faster-whisper library, developed by SYSTRAN, offers an optimized and effici
 - **GPU Acceleration:** Utilize CUDA for GPU acceleration to speed up transcription (if available).
 
 
-## Repository Overview
-
-Here's an overview of the directory structure and files:
-
-SimpleWhisper/
-├── LICENSE
-├── README.md
-├── requirements.txt
-├── setup.py
-├── src/
-│ ├── init.py
-│ ├── main.py
-│ ├── gui.py
-│ └── transcriber.py
-└── tests/
-└── test_transcriber.py
-
-
 ## Running Instructions
 
 To run SimpleWhisper, follow these steps:
