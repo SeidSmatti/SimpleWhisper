@@ -52,11 +52,6 @@ To run SimpleWhisper, follow these steps:
     ```
 4. Install tkinter
    
-   For Windows
-   ```sh
-   pip install tk
-   ```
-   
    For Mac OS
    ```sh
    brew install python-tk
@@ -66,6 +61,10 @@ To run SimpleWhisper, follow these steps:
    ```
    sudo apt-get install python3-tk
    ```
+
+   For Windows
+
+   Usually comes pre-installed with Python, if not see the [official documentation](https://tkdocs.com/tutorial/install.html)
 
 ### Usage
 
