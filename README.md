@@ -2,11 +2,8 @@
 
 A user-friendly transcription tool using the [faster-whisper](https://github.com/SYSTRAN/faster-whisper) library, optimizing [Whisper](https://github.com/openai/whisper) models performance for CPU and GPU transcribing.
 
-## Motivation
-
 SimpleWhisper was developed as part of the [LaCAS Project](https://lacas.inalco.fr/le-projet-lacas) for [INALCO](https://www.inalco.fr/) (Institut National des Langues et Civilisations Orientales).
 
- The primary motivation behind this project is to simplify the usage of the Whisper model by creating an accessible GUI, making advanced transcription technology available to a wider audience without requiring extensive technical knowledge.
 
 ## Method and Results
 
@@ -28,7 +25,8 @@ To run SimpleWhisper, follow these steps:
 ### Prerequisites
 
 - Python 3.7 or higher
-- `ffmpeg` installed and available in the system path. 
+- `ffmpeg` installed and available in the system path.
+-  `tkinter` installed.
 - For GPU acceleration (optional), ensure you have CUDA installed. Check [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) for installation instructions.
 
 
@@ -52,6 +50,22 @@ To run SimpleWhisper, follow these steps:
     ```sh
     pip install -r requirements.txt
     ```
+4. Install tkinter
+   
+   For Windows
+   ```sh
+   pip install tk
+   ```
+   
+   For Mac OS
+   ```sh
+   brew install python-tk
+   ```
+
+   For Linux (Debian based)
+   ```
+   sudo apt-get install python3-tk
+   ```
 
 ### Usage
 
