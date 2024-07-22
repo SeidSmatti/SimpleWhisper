@@ -100,6 +100,8 @@ For more information on Whisper, faster-whisper, and CUDA:
 - [Faster Whisper](https://github.com/SYSTRAN/faster-whisper)
 - [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit)
 
+## Additions 
+- 22/07/2024 : Added manual language selection.
 
 ## About
 
