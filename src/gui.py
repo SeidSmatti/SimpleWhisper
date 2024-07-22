@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
-from transcriber import load_model, convert_to_audio, transcribe_audio, set_log_box, log
+from transcriber import load_model, convert_to_audio, transcribe_audio, set_log_box, log, write_transcriptions_to_file
 import threading
 import os
 
@@ -41,7 +41,11 @@ def start_gui():
         else:
             audio_path = input_file
 
-        transcribe_audio(model, audio_path, output_file, include_timecodes, selected_language)
+        # Transcribe audio and get the transcription results
+        transcriptions = transcribe_audio(model, audio_path, include_timecodes, selected_language)
+        
+        # Save transcriptions to file
+        write_transcriptions_to_file(transcriptions, output_file)
 
         if audio_path == "temp_audio.wav" and os.path.exists(audio_path):
             os.remove(audio_path)
