@@ -1,4 +1,3 @@
-# src/transcriber.py
 import os
 import time
 from faster_whisper import WhisperModel
@@ -29,12 +28,29 @@ def convert_to_audio(input_file, output_file):
         log(f"Error converting video to audio: {e}")
         raise
 
-def transcribe_audio(model, audio_path, output_path, include_timecodes):
+def transcribe_audio(model, audio_path, output_path, include_timecodes, language):
     try:
         start_time = time.time()
         log(f"Starting transcription for {audio_path}")
 
-        segments, _ = model.transcribe(audio_path)
+        supported_languages = {
+            "autodetect": None, "Afrikaans": "af", "Arabic": "ar", "Armenian": "hy", "Azerbaijani": "az",
+            "Belarusian": "be", "Bosnian": "bs", "Bulgarian": "bg", "Catalan": "ca", "Chinese": "zh",
+            "Croatian": "hr", "Czech": "cs", "Danish": "da", "Dutch": "nl", "English": "en",
+            "Estonian": "et", "Finnish": "fi", "French": "fr", "Galician": "gl", "German": "de",
+            "Greek": "el", "Hebrew": "he", "Hindi": "hi", "Hungarian": "hu", "Icelandic": "is",
+            "Indonesian": "id", "Italian": "it", "Japanese": "ja", "Kannada": "kn", "Kazakh": "kk",
+            "Korean": "ko", "Latvian": "lv", "Lithuanian": "lt", "Macedonian": "mk", "Malay": "ms",
+            "Marathi": "mr", "Maori": "mi", "Nepali": "ne", "Norwegian": "no", "Persian": "fa",
+            "Polish": "pl", "Portuguese": "pt", "Romanian": "ro", "Russian": "ru", "Serbian": "sr",
+            "Slovak": "sk", "Slovenian": "sl", "Spanish": "es", "Swahili": "sw", "Swedish": "sv",
+            "Tagalog": "tl", "Tamil": "ta", "Thai": "th", "Turkish": "tr", "Ukrainian": "uk",
+            "Urdu": "ur", "Vietnamese": "vi", "Welsh": "cy"
+        }
+
+        language_code = supported_languages.get(language, None)
+
+        segments, _ = model.transcribe(audio_path, language=language_code)
 
         with open(output_path, "w") as file:
             for segment in segments:
