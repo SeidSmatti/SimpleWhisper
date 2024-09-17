@@ -102,6 +102,7 @@ For more information on Whisper, faster-whisper, and CUDA:
 
 ## Additions 
 - 22/07/2024 : Added manual language selection.
+- 17/09/2024 : Model caching for faster loading, responsive GUI with improved threading, safe temporary file handling, enhanced error handling, code refactoring (modularization and readability), unified language handling, and performance optimization based on device selection.
 
 ## About
 

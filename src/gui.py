@@ -1,8 +1,9 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
-from transcriber import load_model, convert_to_audio, transcribe_audio, set_log_box, log, write_transcriptions_to_file
+from transcriber import model_manager, convert_to_audio, transcribe_audio, set_log_box, log, write_transcriptions_to_file
 import threading
 import os
+from languages import supported_languages
 
 def start_gui():
     def browse_file():
@@ -18,37 +19,49 @@ def start_gui():
             output_entry.insert(0, output_path)
 
     def start_transcription_thread():
+        start_button.configure(state='disabled')
         threading.Thread(target=start_transcription).start()
 
     def start_transcription():
-        input_file = file_entry.get()
-        output_file = output_entry.get()
-        model_size = model_size_var.get()
-        device = "cuda" if gpu_var.get() else "cpu"
-        include_timecodes = timecodes_var.get()
-        selected_language = language_var.get()
+        try:
+            input_file = file_entry.get()
+            output_file = output_entry.get()
+            model_size = model_size_var.get()
+            device = "cuda" if gpu_var.get() else "cpu"
+            include_timecodes = timecodes_var.get()
+            selected_language_label = language_var.get()
+            language_codes = {label: code for code, label in supported_languages}
+            selected_language_code = language_codes.get(selected_language_label, "autodetect")
 
-        if not input_file or not output_file:
-            messagebox.showerror("Error", "Please select an input file and an output file.")
-            return
+            if not input_file or not output_file:
+                messagebox.showerror("Error", "Please select an input file and an output file.")
+                return
 
-        model = load_model(model_size, device, "int8" if device == "cpu" else "float16")
+            model = model_manager.load_model(model_size, device, "int8" if device == "cpu" else "float16")
 
-        audio_path = "temp_audio.wav"
-        if input_file.endswith(('.mp4', '.mkv', '.avi')):
-            log("Converting video to audio...")
-            convert_to_audio(input_file, audio_path)
-        else:
-            audio_path = input_file
+            if input_file.endswith(('.mp4', '.mkv', '.avi')):
+                log("Converting video to audio...")
+                audio_path = convert_to_audio(input_file)
+                temp_audio = True
+            else:
+                audio_path = input_file
+                temp_audio = False
 
-        # Transcribe audio and get the transcription results
-        transcriptions = transcribe_audio(model, audio_path, include_timecodes, selected_language)
-        
-        # Save transcriptions to file
-        write_transcriptions_to_file(transcriptions, output_file)
+            # Transcribe audio and get the transcription results
+            transcriptions = transcribe_audio(model, audio_path, include_timecodes, selected_language_code)
+            
+            # Save transcriptions to file
+            write_transcriptions_to_file(transcriptions, output_file)
 
-        if audio_path == "temp_audio.wav" and os.path.exists(audio_path):
-            os.remove(audio_path)
+            if temp_audio and os.path.exists(audio_path):
+                os.remove(audio_path)
+
+            log("Transcription completed successfully.")
+        except Exception as e:
+            log(f"An error occurred during transcription: {e}")
+        finally:
+            # Re-enable the button
+            root.after(0, lambda: start_button.configure(state='normal'))
 
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
@@ -71,24 +84,14 @@ def start_gui():
 
     ctk.CTkLabel(frame, text="Model Size:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
     model_size_var = ctk.StringVar(value="base")
-    ctk.CTkComboBox(frame, variable=model_size_var, values=["base", "small", "medium", "large", "large-v2", "large-v3"]).grid(row=2, column=1, sticky="ew", padx=5, pady=5)
+    ctk.CTkComboBox(
+        frame,
+        variable=model_size_var,
+        values=["base", "small", "medium", "large", "large-v2", "large-v3"]
+    ).grid(row=2, column=1, sticky="ew", padx=5, pady=5)
 
     ctk.CTkLabel(frame, text="Language:").grid(row=3, column=0, sticky="w", padx=5, pady=5)
-    language_var = ctk.StringVar(value="autodetect")
-    supported_languages = [
-        ("autodetect", "autodetect"), ("af", "Afrikaans"), ("ar", "Arabic"), ("hy", "Armenian"), ("az", "Azerbaijani"),
-        ("be", "Belarusian"), ("bs", "Bosnian"), ("bg", "Bulgarian"), ("ca", "Catalan"), ("zh", "Chinese"),
-        ("hr", "Croatian"), ("cs", "Czech"), ("da", "Danish"), ("nl", "Dutch"), ("en", "English"),
-        ("et", "Estonian"), ("fi", "Finnish"), ("fr", "French"), ("gl", "Galician"), ("de", "German"),
-        ("el", "Greek"), ("he", "Hebrew"), ("hi", "Hindi"), ("hu", "Hungarian"), ("is", "Icelandic"),
-        ("id", "Indonesian"), ("it", "Italian"), ("ja", "Japanese"), ("kn", "Kannada"), ("kk", "Kazakh"),
-        ("ko", "Korean"), ("lv", "Latvian"), ("lt", "Lithuanian"), ("mk", "Macedonian"), ("ms", "Malay"),
-        ("mr", "Marathi"), ("mi", "Maori"), ("ne", "Nepali"), ("no", "Norwegian"), ("fa", "Persian"),
-        ("pl", "Polish"), ("pt", "Portuguese"), ("ro", "Romanian"), ("ru", "Russian"), ("sr", "Serbian"),
-        ("sk", "Slovak"), ("sl", "Slovenian"), ("es", "Spanish"), ("sw", "Swahili"), ("sv", "Swedish"),
-        ("tl", "Tagalog"), ("ta", "Tamil"), ("th", "Thai"), ("tr", "Turkish"), ("uk", "Ukrainian"),
-        ("ur", "Urdu"), ("vi", "Vietnamese"), ("cy", "Welsh")
-    ]
+    language_var = ctk.StringVar(value="Autodetect")
     language_options = [label for code, label in supported_languages]
     ctk.CTkComboBox(frame, variable=language_var, values=language_options).grid(row=3, column=1, sticky="ew", padx=5, pady=5)
 
@@ -98,7 +101,8 @@ def start_gui():
     timecodes_var = ctk.BooleanVar()
     ctk.CTkCheckBox(frame, text="Include Timecodes", variable=timecodes_var).grid(row=4, column=1, sticky="w", padx=5, pady=5)
 
-    ctk.CTkButton(frame, text="Start Transcription", command=start_transcription_thread).grid(row=5, column=0, columnspan=3, pady=10)
+    start_button = ctk.CTkButton(frame, text="Start Transcription", command=start_transcription_thread)
+    start_button.grid(row=5, column=0, columnspan=3, pady=10)
 
     log_box = ctk.CTkTextbox(frame, height=200, width=600)
     log_box.grid(row=6, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
@@ -106,3 +110,5 @@ def start_gui():
     set_log_box(log_box)  # Set the log box for the transcriber
 
     root.mainloop()
+
+

@@ -2,6 +2,8 @@ import os
 import time
 from faster_whisper import WhisperModel
 import subprocess
+import tempfile
+from languages import supported_languages
 
 log_box = None
 
@@ -16,39 +18,47 @@ def log(message):
     else:
         print(message.encode('utf-8', errors='replace').decode('utf-8'))
 
-def load_model(model_size="base", device="cpu", compute_type="int8"):
-    log("Loading the model...")
-    return WhisperModel(model_size, device=device, compute_type=compute_type)
+class ModelManager:
+    def __init__(self):
+        self.model = None
+        self.model_size = None
+        self.device = None
+        self.compute_type = None
 
-def convert_to_audio(input_file, output_file):
+    def load_model(self, model_size="base", device="cpu", compute_type="int8"):
+        if self.model is None or self.model_size != model_size or self.device != device or self.compute_type != compute_type:
+            log(f"Loading model: size={model_size}, device={device}, compute_type={compute_type}")
+            self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
+            self.model_size = model_size
+            self.device = device
+            self.compute_type = compute_type
+        else:
+            log("Using cached model.")
+        return self.model
+
+model_manager = ModelManager()
+
+def convert_to_audio(input_file):
     try:
-        command = ["ffmpeg", "-i", input_file, "-q:a", "0", "-map", "a", output_file]
+        temp_audio_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        temp_audio_path = temp_audio_file.name
+        temp_audio_file.close()
+
+        # Add the '-y' option to automatically overwrite existing files
+        command = ["ffmpeg", "-y", "-i", input_file, "-q:a", "0", "-map", "a", temp_audio_path]
         subprocess.run(command, check=True)
+        return temp_audio_path
     except subprocess.CalledProcessError as e:
         log(f"Error converting video to audio: {e}")
         raise
 
-def transcribe_audio(model, audio_path, include_timecodes, language):
+def transcribe_audio(model, audio_path, include_timecodes, language_code):
     try:
         start_time = time.time()
         log(f"Starting transcription for {audio_path}")
 
-        supported_languages = {
-            "autodetect": None, "Afrikaans": "af", "Arabic": "ar", "Armenian": "hy", "Azerbaijani": "az",
-            "Belarusian": "be", "Bosnian": "bs", "Bulgarian": "bg", "Catalan": "ca", "Chinese": "zh",
-            "Croatian": "hr", "Czech": "cs", "Danish": "da", "Dutch": "nl", "English": "en",
-            "Estonian": "et", "Finnish": "fi", "French": "fr", "Galician": "gl", "German": "de",
-            "Greek": "el", "Hebrew": "he", "Hindi": "hi", "Hungarian": "hu", "Icelandic": "is",
-            "Indonesian": "id", "Italian": "it", "Japanese": "ja", "Kannada": "kn", "Kazakh": "kk",
-            "Korean": "ko", "Latvian": "lv", "Lithuanian": "lt", "Macedonian": "mk", "Malay": "ms",
-            "Marathi": "mr", "Maori": "mi", "Nepali": "ne", "Norwegian": "no", "Persian": "fa",
-            "Polish": "pl", "Portuguese": "pt", "Romanian": "ro", "Russian": "ru", "Serbian": "sr",
-            "Slovak": "sk", "Slovenian": "sl", "Spanish": "es", "Swahili": "sw", "Swedish": "sv",
-            "Tagalog": "tl", "Tamil": "ta", "Thai": "th", "Turkish": "tr", "Ukrainian": "uk",
-            "Urdu": "ur", "Vietnamese": "vi", "Welsh": "cy"
-        }
-
-        language_code = supported_languages.get(language, None)
+        if language_code == "autodetect":
+            language_code = None
 
         segments, _ = model.transcribe(audio_path, language=language_code)
         transcriptions = []
@@ -70,3 +80,5 @@ def write_transcriptions_to_file(transcriptions, output_path):
     with open(output_path, 'w', encoding='utf-8') as file:
         for line in transcriptions:
             file.write(line + '\n')
+
+
