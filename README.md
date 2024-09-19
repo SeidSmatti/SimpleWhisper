@@ -68,7 +68,7 @@ To run SimpleWhisper, follow these steps:
     
 
 
-** NOTE : For Windows, you can directly download the binary from the [Releases](https://github.com/SeidSmatti/SimpleWhisper/releases).**
+** NOTE : For Windows, you can directly download the (so far unsigned) binary from the [Releases](https://github.com/SeidSmatti/SimpleWhisper/releases).**
 ### Usage
 
 1. Run the application:
