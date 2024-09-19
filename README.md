@@ -65,7 +65,10 @@ To run SimpleWhisper, follow these steps:
    For Windows
 
    Usually comes pre-installed with Python, if not see the [official documentation](https://tkdocs.com/tutorial/install.html)
+    
 
+
+** NOTE : For Windows, you can directly download the binary from the [Releases](https://github.com/SeidSmatti/SimpleWhisper/releases).**
 ### Usage
 
 1. Run the application:

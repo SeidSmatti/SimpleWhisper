@@ -4,8 +4,19 @@ from faster_whisper import WhisperModel
 import subprocess
 import tempfile
 from languages import supported_languages
+import sys
 
 log_box = None
+
+def get_ffmpeg_path():
+    if getattr(sys, 'frozen', False):
+        # The application is frozen (PyInstaller executable)
+        bundle_dir = sys._MEIPASS
+    else:
+        # The application is running normally
+        bundle_dir = os.path.dirname(os.path.abspath(__file__))
+    ffmpeg_executable = os.path.join(bundle_dir, 'ffmpeg.exe')
+    return ffmpeg_executable
 
 def set_log_box(log_widget):
     global log_box
@@ -44,8 +55,11 @@ def convert_to_audio(input_file):
         temp_audio_path = temp_audio_file.name
         temp_audio_file.close()
 
-        # Add the '-y' option to automatically overwrite existing files
-        command = ["ffmpeg", "-y", "-i", input_file, "-q:a", "0", "-map", "a", temp_audio_path]
+        # Get the path to the bundled ffmpeg executable
+        ffmpeg_path = get_ffmpeg_path()
+
+        # Build the command using the full path to ffmpeg.exe
+        command = [ffmpeg_path, "-y", "-i", input_file, "-q:a", "0", "-map", "a", temp_audio_path]
         subprocess.run(command, check=True)
         return temp_audio_path
     except subprocess.CalledProcessError as e:
@@ -80,5 +94,3 @@ def write_transcriptions_to_file(transcriptions, output_path):
     with open(output_path, 'w', encoding='utf-8') as file:
         for line in transcriptions:
             file.write(line + '\n')
-
-
