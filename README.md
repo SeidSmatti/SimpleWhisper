@@ -88,13 +88,12 @@ To run SimpleWhisper, follow these steps:
 - Basic output formating choice.
 - A choice between running the model on CPU or GPU.
 
-
-### Running Tests
-
-Run the unit tests to ensure everything is working correctly:
-```sh
-python -m unittest discover -s tests
-```
+### Common issues 
+You might experience issues while using the GPU option.
+   ```
+   Could not locate cudnn_ops_infer64_8.dll. Please make sure it is in your library path! 
+   ```
+You can try [This fix](https://github.com/Purfview/whisper-standalone-win/releases/tag/libs)
 
 ## More Resources
 
